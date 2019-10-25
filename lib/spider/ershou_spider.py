@@ -92,6 +92,7 @@ class ErShouSpider(BaseSpider):
                 name = house_elem.find('div', class_='title')
                 desc = house_elem.find('div', class_="houseInfo")
                 pic = house_elem.find('a', class_="img").find('img', class_="lj-lazy")
+                unitprice = house_elem.find('div', class_="unitPrice")
 
                 # 继续清理数据
                 price = price.text.strip()
@@ -99,10 +100,10 @@ class ErShouSpider(BaseSpider):
                 desc = desc.text.replace("\n", "").strip()
                 pic = pic.get('data-original').strip()
                 # print(pic)
-
+                unitprice = unitprice.text.strip()
 
                 # 作为对象保存
-                ershou = ErShou(chinese_district, chinese_area, name, price, desc, pic)
+                ershou = ErShou(chinese_district, chinese_area, name, price, unitprice, desc, pic)
                 ershou_list.append(ershou)
         return ershou_list
 
