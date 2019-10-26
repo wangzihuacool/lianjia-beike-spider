@@ -15,9 +15,47 @@ from lib.utility.path import *
 from lib.zone.area import *
 from lib.utility.log import *
 import lib.utility.version
+from env import *
+from lib.utility.mysql_operate import MysqlOperate
 
 
 class ErShouSpider(BaseSpider):
+    # house_info直接插入数据库 modified by wl_lw at 20191026
+    def ershou_data_into_db(self, city_name, area_name, fmt="mysql"):
+        '''
+        对于每个板块,获得这个板块下所有二手房的信息，信息写入数据库
+        :param  city_name: 城市
+        :param  area_name: 板块
+        :param  fmt: 保存文件方式
+        :return: None
+        '''
+        district_name = area_dict.get(area_name, "")
+        ershous = self.get_area_ershou_info(city_name, area_name)
+        if fmt == "mysql":
+            house_info = [ershou.handle_info() for ershou in ershous]
+            house_info = tuple(house_info)
+            sql = 'insert into wh_ershou(district, area, xiaoqu, price, unitprice, size, zhuangxiu, ' \
+                  'louceng, followers, lastdays, title, content, pic) ' \
+                  'values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            try:
+                db = MysqlOperate(**mysql_db_info)
+                db.mysql_executemany(sql, house_info)
+            except:
+                print('插入mysql失败: ' + area_name)
+            print('Finish crawl area:' + area_name + ", save data to db.")
+            '''            
+            for ershou in ershous:
+                house_info = ershou.handle_info()
+                sql = 'insert into wh_ershou(district, area, xiaoqu, price, unitprice, size, followers, ' \
+                      'lastdays, title, content, pic) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                try:
+                    db = MysqlOperate(**mysql_db_info)
+                    db.mysql_execute(sql, house_info)
+                except:
+                    print('插入mysql失败: ' + ershou.text())
+            print('Finish crawl area:' + area_name + ", save data to db.")
+            '''
+
     def collect_area_ershou_data(self, city_name, area_name, fmt="csv"):
         """
         对于每个板块,获得这个板块下所有二手房的信息
@@ -86,6 +124,7 @@ class ErShouSpider(BaseSpider):
             soup = BeautifulSoup(html, "lxml")
 
             # 获得有小区信息的panel
+            # 增加小区、单价和发布时间及关注情况 modified by wl_lw at 20191026
             house_elements = soup.find_all('li', class_="clear")
             for house_elem in house_elements:
                 price = house_elem.find('div', class_="totalPrice")
@@ -93,6 +132,8 @@ class ErShouSpider(BaseSpider):
                 desc = house_elem.find('div', class_="houseInfo")
                 pic = house_elem.find('a', class_="img").find('img', class_="lj-lazy")
                 unitprice = house_elem.find('div', class_="unitPrice")
+                xiaoqu = house_elem.find('div', class_="positionInfo").find('a', {'data-el': "region"})
+                followinfo = house_elem.find('div', class_="followInfo")
 
                 # 继续清理数据
                 price = price.text.strip()
@@ -101,9 +142,11 @@ class ErShouSpider(BaseSpider):
                 pic = pic.get('data-original').strip()
                 # print(pic)
                 unitprice = unitprice.text.strip()
+                xiaoqu = xiaoqu.text.replace("\n", "").strip()
+                followinfo = followinfo.text.replace("\n", "").strip()
 
                 # 作为对象保存
-                ershou = ErShou(chinese_district, chinese_area, name, price, unitprice, desc, pic)
+                ershou = ErShou(chinese_district, chinese_area, xiaoqu, name, price, unitprice, desc, followinfo, pic)
                 ershou_list.append(ershou)
         return ershou_list
 
@@ -140,7 +183,8 @@ class ErShouSpider(BaseSpider):
         # 针对每个板块写一个文件,启动一个线程来操作
         pool_size = thread_pool_size
         pool = threadpool.ThreadPool(pool_size)
-        my_requests = threadpool.makeRequests(self.collect_area_ershou_data, args)
+        my_requests = threadpool.makeRequests(self.ershou_data_into_db, args)
+        # my_requests = threadpool.makeRequests(self.collect_area_ershou_data, args)
         [pool.putRequest(req) for req in my_requests]
         pool.wait()
         pool.dismissWorkers(pool_size, do_join=True)  # 完成后退出
