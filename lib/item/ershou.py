@@ -39,7 +39,7 @@ class ErShou(object):
         price = int(float(re.findall(r"\d+\.?\d*", self.price)[0]) * 10000)
         unitprice = int(re.findall(r"\d+\.?\d*", self.unitprice)[0])
         size = float(re.findall(r"\d+\.?\d*", self.desc.split('|')[1].strip())[0])
-        zhuangxiu = self.desc.split('|')[3].strip()
+        zhuangxiu = self.desc.split('|')[3].strip() if not self.desc.split('|')[3].strip()[0].isdigit() else None
         louceng = self.desc.split('|')[4].strip()[0] if self.desc.split('|')[4].strip() else None
         tmp_list = self.followinfo.split('/')
         try:
