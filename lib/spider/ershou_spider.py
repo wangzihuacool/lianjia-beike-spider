@@ -34,9 +34,9 @@ class ErShouSpider(BaseSpider):
         if fmt == "mysql":
             house_info = [ershou.handle_info() for ershou in ershous]
             house_info = tuple(house_info)
-            sql = 'insert into wh_ershou(district, area, xiaoqu, price, unitprice, size, zhuangxiu, ' \
-                  'louceng, followers, lastdays, title, content, pic) ' \
-                  'values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+            sql = 'insert into {0}_ershou(district, area, xiaoqu, price, unitprice, size, zhuangxiu, louceng, ' \
+                  'followers, lastdays, title, content, pic) ' \
+                  'values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'.format(city_name)
             try:
                 db = MysqlOperate(**mysql_db_info)
                 db.mysql_executemany(sql, house_info)
@@ -46,8 +46,8 @@ class ErShouSpider(BaseSpider):
             '''            
             for ershou in ershous:
                 house_info = ershou.handle_info()
-                sql = 'insert into wh_ershou(district, area, xiaoqu, price, unitprice, size, followers, ' \
-                      'lastdays, title, content, pic) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                sql = 'insert into {0}_ershou(district, area, xiaoqu, price, unitprice, size, followers, ' \
+                      'lastdays, title, content, pic) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'.format(city_name)
                 try:
                     db = MysqlOperate(**mysql_db_info)
                     db.mysql_execute(sql, house_info)
