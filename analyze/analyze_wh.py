@@ -107,7 +107,7 @@ class AnalyzeWH(object):
     def push_data(self, information):
         d = {'wh_ershou_info': information}
         d = json.dumps(d)
-        r = requests.post('http://boybean.cn/wh_ershou', data=d)
+        r = requests.post('http://www.boybean.cn/wh_ershou', data=d)
         # print(r.status_code)
         # print(r.text)
         return r.status_code
