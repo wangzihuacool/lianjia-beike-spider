@@ -10,7 +10,8 @@ from functools import reduce
 import requests
 import json
 
-#获取wh二手房价分析情况
+
+# 获取wh二手房价分析情况
 class AnalyzeWH(object):
     def __init__(self):
         self.MysqlConn = MysqlOperate(**mysql_db_info)
