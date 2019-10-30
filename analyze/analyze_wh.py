@@ -7,6 +7,8 @@ from lib.utility.mysql_operate import MysqlOperate
 from analyze.analyze_sql import *
 from env import *
 from functools import reduce
+import requests
+import json
 
 #获取wh二手房价分析情况
 class AnalyzeWH(object):
@@ -101,10 +103,22 @@ class AnalyzeWH(object):
         final_info = str(update_time) + ' ' + summary_info + '\n' + detail_info
         return final_info
 
+    # 当日数据推送给boybean
+    def push_data(self, information):
+        d = {'wh_ershou_info': information}
+        d = json.dumps(d)
+        r = requests.post('http://boybean.cn/wh_ershou', data=d)
+        # print(r.status_code)
+        # print(r.text)
+        return r.status_code
+
+
 if __name__ == "__main__":
     wh_data = AnalyzeWH()
     message = wh_data.analyze_wh()
     print(message)
+    status = wh_data.push_data(message)
+    print(status)
 
 
 
