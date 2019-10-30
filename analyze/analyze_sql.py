@@ -50,3 +50,10 @@ where date(update_time) > curdate() - 2
 group by date(update_time) order by update_time desc;
 """
 
+# 白沙洲二手房市场均价
+SQL_BSZ_SUMMARY = """
+select 'baishazhou', date(update_time) as update_time, round(avg(unitprice)) as unitprice, count(*) as house_num, round(avg(lastdays)) as lastdays, sum(followers) as followers
+from wh_ershou
+where area = '白沙洲' and date(update_time) > curdate() - 2
+group by date(update_time) order by update_time desc; 
+"""

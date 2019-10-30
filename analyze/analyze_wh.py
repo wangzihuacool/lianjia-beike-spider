@@ -35,6 +35,11 @@ class AnalyzeWH(object):
         res_city_summary = self.MysqlConn.mysql_select(SQL_CITY_SUMMARY)
         return res_city_summary
 
+    # 白沙洲
+    def analyze_bsz_summary(self):
+        res_bsz_summary = self.MysqlConn.mysql_select(SQL_BSZ_SUMMARY)
+        return res_bsz_summary
+
     def mysql_close(self):
         self.MysqlConn.close()
 
@@ -45,6 +50,7 @@ class AnalyzeWH(object):
         res_area_summary = self.analyze_area_summary()
         res_district_summary = self.analyze_district_summary()
         res_city_summary = self.analyze_city_summary()
+        res_bsz_summary = self.analyze_bsz_summary()
         # city info
         city_unitprice = res_city_summary[0][2] if res_city_summary[0][0] == 'wh' else 0
         city_unitprice_lastday = res_city_summary[1][2] if res_city_summary[1][0] == 'wh' else 0
@@ -98,9 +104,18 @@ class AnalyzeWH(object):
         qita_info = '其他房型{maopi}套，'.format(maopi=str(xiaoqu_others_houses)) + others_percent
         detail_info = maopi_info + '；' + jingzhuang_info + '；' + qita_info
 
+        # 白沙洲的信息
+        bsz_unitprice = res_bsz_summary[0][2] if res_bsz_summary[0][0] == 'baishazhou' else 0
+        bsz_unitprice_lastday = res_bsz_summary[1][2] if res_bsz_summary[1][0] == 'baishazhou' else 0
+        bsz_trend = '环比增长 {:.2%}'.format((bsz_unitprice - bsz_unitprice_lastday) / bsz_unitprice_lastday) if bsz_unitprice >= bsz_unitprice_lastday else '环比下降 {:.2%}'.format((bsz_unitprice_lastday - bsz_unitprice) / bsz_unitprice_lastday)
+        bsz_houses = res_bsz_summary[0][3] if res_bsz_summary[0][0] == 'baishazhou' else 0
+        bsz_houses_lastday = res_bsz_summary[1][3] if res_bsz_summary[1][0] == 'baishazhou' else 0
+        bsz_houses_trend = '环比增长 {:.2%}'.format((bsz_houses - bsz_houses_lastday) / bsz_houses_lastday) if bsz_houses >= bsz_houses_lastday else '环比下降 {:.2%}'.format((bsz_houses_lastday - bsz_houses) / bsz_houses_lastday)
+        bsz_info = '白沙洲片区平均房价{bsz_unitprice}，'.format(bsz_unitprice=str(bsz_unitprice)) + bsz_trend + '，' + '二手房房源 {bsz_houses}套,'.format(bsz_houses=str(bsz_houses)) + bsz_houses_trend + '.'
+
         # 最终
         update_time = res_city_summary[0][1] if res_city_summary[0] else res_xiaoqu_detail[0][0]
-        final_info = str(update_time) + ' ' + summary_info + '\n' + detail_info
+        final_info = str(update_time) + ' ' + summary_info + '\n\n' + detail_info + '\n\n' + bsz_info
         return final_info
 
     # 当日数据推送给boybean
